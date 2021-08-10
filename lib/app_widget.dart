@@ -33,7 +33,7 @@ class AppWidget extends StatelessWidget {
         Routes.barcodeScanner: (context) => BarcodeScannerPage(),
         Routes.insertBoleto: (context) => InsertBoletoPage(
               barcode:
-                  ModalRoute.of(context)!.settings.arguments as String ?? "",
+                  ModalRoute.of(context)!.settings.arguments?.toString() ?? "",
             )
       },
     );
