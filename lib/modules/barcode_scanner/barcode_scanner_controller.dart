@@ -11,58 +11,70 @@ class BarcodeScannerController {
   BarcodeScannerStatus get status => statusNotifier.value;
   set status(BarcodeScannerStatus status) => statusNotifier.value = status;
 
-  final barcodeScanner = GoogleMlKit.vision.barcodeScanner();
+  var barcodeScanner = GoogleMlKit.vision.barcodeScanner();
+  CameraController? cameraController;
+
+  InputImage? imagePicker;
 
   void getAvailableCameras() async {
     try {
       final response = await availableCameras();
       final camera = response.firstWhere(
-        (element) => element.lensDirection == CameraLensDirection.back,
-      );
-
-      final cameraController = CameraController(
-        camera,
-        ResolutionPreset.max,
-        enableAudio: false,
-      );
-      await cameraController.initialize();
-      status = BarcodeScannerStatus.availableCamera(cameraController);
+          (element) => element.lensDirection == CameraLensDirection.back);
+      cameraController =
+          CameraController(camera, ResolutionPreset.max, enableAudio: false);
+      await cameraController!.initialize();
       scanWithCamera();
-    } catch (error) {
-      status = BarcodeScannerStatus.error(error.toString());
+      listenCamera();
+    } catch (e) {
+      status = BarcodeScannerStatus.error(e.toString());
     }
   }
 
-  void scanWithCamera() {
-    Future.delayed(Duration(seconds: 10)).then((value) {
-      final cameraController = status.cameraController;
-      if (cameraController != null &&
-          cameraController.value.isStreamingImages) {
-        cameraController.stopImageStream();
+  Future<void> scannerBarCode(InputImage inputImage) async {
+    try {
+      final barcodes = await barcodeScanner.processImage(inputImage);
+
+      var barcode;
+      for (Barcode item in barcodes) {
+        barcode = item.value.displayValue;
       }
 
-      status = BarcodeScannerStatus.error("Timeout de leitura de boleto");
-    });
-    listenCamera();
+      if (barcode != null && status.barcode.isEmpty) {
+        status = BarcodeScannerStatus.barcode(barcode);
+        cameraController!.dispose();
+        await barcodeScanner.close();
+      }
+
+      return;
+    } catch (e) {
+      print("ERRO DA LEITURA $e");
+    }
   }
 
   void scanWithImagePicker() async {
-    await status.cameraController!.stopImageStream();
-    final response = await ImagePicker().pickImage(source: ImageSource.gallery);
+    final response = await ImagePicker().getImage(source: ImageSource.gallery);
     final inputImage = InputImage.fromFilePath(response!.path);
     scannerBarCode(inputImage);
   }
 
+  void scanWithCamera() {
+    status = BarcodeScannerStatus.available();
+    Future.delayed(Duration(seconds: 20)).then((value) {
+      if (status.hasBarcode == false)
+        status = BarcodeScannerStatus.error("Timeout de leitura de boleto");
+    });
+  }
+
   void listenCamera() {
-    if (status.cameraController != null) {
-      if (status.cameraController!.value.isStreamingImages == false) {
-        status.cameraController!.startImageStream((cameraImage) async {
+    if (cameraController!.value.isStreamingImages == false)
+      cameraController!.startImageStream((cameraImage) async {
+        if (status.stopScanner == false) {
           try {
             final WriteBuffer allBytes = WriteBuffer();
             for (Plane plane in cameraImage.planes) {
               allBytes.putUint8List(plane.bytes);
             }
-
             final bytes = allBytes.done().buffer.asUint8List();
             final Size imageSize = Size(
                 cameraImage.width.toDouble(), cameraImage.height.toDouble());
@@ -71,12 +83,15 @@ class BarcodeScannerController {
             final InputImageFormat inputImageFormat =
                 InputImageFormatMethods.fromRawValue(cameraImage.format.raw) ??
                     InputImageFormat.NV21;
-            final planeData = cameraImage.planes
-                .map((plane) => InputImagePlaneMetadata(
-                    bytesPerRow: plane.bytesPerRow,
-                    height: plane.height,
-                    width: plane.width))
-                .toList();
+            final planeData = cameraImage.planes.map(
+              (Plane plane) {
+                return InputImagePlaneMetadata(
+                  bytesPerRow: plane.bytesPerRow,
+                  height: plane.height,
+                  width: plane.width,
+                );
+              },
+            ).toList();
 
             final inputImageData = InputImageData(
               size: imageSize,
@@ -85,51 +100,20 @@ class BarcodeScannerController {
               planeData: planeData,
             );
             final inputImageCamera = InputImage.fromBytes(
-              bytes: bytes,
-              inputImageData: inputImageData,
-            );
-
-            await Future.delayed(Duration(seconds: 3));
-            await scannerBarCode(inputImageCamera);
-          } catch (error) {
-            status = BarcodeScannerStatus.error(error.toString());
+                bytes: bytes, inputImageData: inputImageData);
+            scannerBarCode(inputImageCamera);
+          } catch (e) {
+            print(e);
           }
-        });
-      }
-    }
-  }
-
-  Future<void> scannerBarCode(InputImage inputImage) async {
-    try {
-      final cameraController = status.cameraController;
-      if (cameraController != null) {
-        if (cameraController.value.isStreamingImages)
-          cameraController.stopImageStream();
-      }
-
-      final barcodes = await barcodeScanner.processImage(inputImage);
-      var barcode;
-      for (Barcode item in barcodes) {
-        barcode = item.value.displayValue;
-      }
-
-      if (barcode != null && status.barcode.isEmpty) {
-        status = BarcodeScannerStatus.barcode(barcode);
-        if (cameraController != null) cameraController.dispose();
-      } else {
-        getAvailableCameras();
-      }
-    } catch (e) {
-      status = BarcodeScannerStatus.error(e.toString());
-      print("ERRO DA LEITURA $e");
-    }
+        }
+      });
   }
 
   void dispose() {
     statusNotifier.dispose();
     barcodeScanner.close();
     if (status.showCamera) {
-      status.cameraController!.dispose();
+      cameraController!.dispose();
     }
   }
 }

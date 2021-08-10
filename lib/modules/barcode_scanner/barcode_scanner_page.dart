@@ -44,7 +44,8 @@ class _BarcodeScannerPageState extends State<BarcodeScannerPage> {
             builder: (_, status, __) {
               if (status.showCamera) {
                 return Container(
-                  child: status.cameraController!.buildPreview(),
+                  color: Colors.blue,
+                  child: controller.cameraController!.buildPreview(),
                 );
               }
               return Container();
