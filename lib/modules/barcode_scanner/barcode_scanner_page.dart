@@ -88,9 +88,13 @@ class _BarcodeScannerPageState extends State<BarcodeScannerPage> {
               ),
               bottomNavigationBar: SetLabelButtons(
                 primaryLabel: "Inserir código do boleto",
-                primaryOnPressed: () {},
+                primaryOnPressed: () {
+                  Navigator.pushReplacementNamed(context, Routes.insertBoleto);
+                },
                 secundaryLabel: "Adicionar da galeria",
-                secundaryOnPressed: () {},
+                secundaryOnPressed: () {
+                  controller.scanWithImagePicker();
+                },
               ),
             ),
           ),
@@ -104,10 +108,13 @@ class _BarcodeScannerPageState extends State<BarcodeScannerPage> {
                       "Tente escanear novamente ou digite o código do seu boleto.",
                   primaryLabel: "Escanear novamente",
                   primaryOnPressed: () {
-                    controller.getAvailableCameras();
+                    controller.scanWithCamera();
                   },
                   secundaryLabel: "Digitar código",
-                  secundaryOnPressed: () {},
+                  secundaryOnPressed: () {
+                    Navigator.pushReplacementNamed(
+                        context, Routes.insertBoleto);
+                  },
                 );
               }
               return Container();
