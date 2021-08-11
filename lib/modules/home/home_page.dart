@@ -18,10 +18,6 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   final controller = HomeController();
-  final pages = [
-    MeusBoletosPage(),
-    ExtractPage(),
-  ];
 
   @override
   Widget build(BuildContext context) {
@@ -62,7 +58,14 @@ class _HomePageState extends State<HomePage> {
           ),
         ),
       ),
-      body: pages[controller.currentPage],
+      body: [
+        MeusBoletosPage(
+          key: UniqueKey(),
+        ),
+        ExtractPage(
+          key: UniqueKey(),
+        ),
+      ][controller.currentPage],
       bottomNavigationBar: Container(
         height: 90,
         child: Row(
@@ -79,8 +82,9 @@ class _HomePageState extends State<HomePage> {
                   : AppColors.body,
             ),
             GestureDetector(
-              onTap: () {
-                Navigator.pushNamed(context, Routes.barcodeScanner);
+              onTap: () async {
+                await Navigator.pushNamed(context, Routes.barcodeScanner);
+                setState(() {});
               },
               child: Container(
                 width: 56,
