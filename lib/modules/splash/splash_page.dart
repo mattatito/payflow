@@ -4,10 +4,12 @@ import 'package:payflow/shared/themes/app_colors.dart';
 import 'package:payflow/shared/themes/app_images.dart';
 
 class SplashPage extends StatelessWidget {
-  const SplashPage({Key? key}) : super(key: key);
+  final AuthController? controller;
+  const SplashPage({Key? key, this.controller}) : super(key: key);
 
   Widget build(BuildContext context) {
-    final authController = AuthController();
+    final authController = controller ?? AuthController();
+    
     authController.currentUser(context);
     return Scaffold(
       backgroundColor: AppColors.background,
