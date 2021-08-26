@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:payflow/modules/login/data/repositories/login_repository_impl.dart';
+import 'package:payflow/modules/login/domain/repositories/login_repository.dart';
 import 'package:payflow/modules/login/login_controller.dart';
+import 'package:payflow/shared/auth/auth_controller.dart';
 import 'package:payflow/shared/themes/app_colors.dart';
 import 'package:payflow/shared/themes/app_images.dart';
 import 'package:payflow/shared/themes/app_text_styles.dart';
@@ -13,7 +16,8 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
-  final controller = LoginController();
+  final controller = LoginController(
+      loginRepository: LoginRepositoryImpl(), authController: AuthController());
 
   @override
   Widget build(BuildContext context) {
