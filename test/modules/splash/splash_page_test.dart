@@ -33,6 +33,4 @@ void main() {
 
     expect(image, findsOneWidget);
   });
-
-  testWidgets("Teste", (tester) async {});
 }
