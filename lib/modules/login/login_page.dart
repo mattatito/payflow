@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:payflow/modules/login/data/repositories/login_repository_impl.dart';
 import 'package:payflow/modules/login/login_controller.dart';
+import 'package:payflow/modules/login/login_status.dart';
+import 'package:payflow/shared/auth/auth_controller.dart';
 import 'package:payflow/shared/themes/app_colors.dart';
 import 'package:payflow/shared/themes/app_images.dart';
 import 'package:payflow/shared/themes/app_text_styles.dart';
@@ -13,7 +16,10 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
-  final controller = LoginController();
+  final controller = LoginController(
+    loginRepository: LoginRepositoryImpl(),
+    authController: AuthController(),
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -64,15 +70,40 @@ class _LoginPageState extends State<LoginPage> {
                   Padding(
                     padding:
                         const EdgeInsets.only(left: 40, right: 40, top: 40),
-                    child: SocialLoginButton(
-                      onTap: () {
-                        controller.googleSignIn(context);
+                    child: ValueListenableBuilder<LoginStatus>(
+                      valueListenable: controller.statusNotifier,
+                      builder: (_, value, __) {
+                        if (!value.loading) {
+                          return SocialLoginButton(
+                            key: Key('google_signin_button'),
+                            onTap: () {
+                              controller.googleSignIn(context);
+                            },
+                          );
+                        } else {
+                          return Center(
+                            child: CircularProgressIndicator(),
+                          );
+                        }
                       },
                     ),
                   )
                 ],
               ),
-            )
+            ),
+            ValueListenableBuilder<LoginStatus>(
+                valueListenable: controller.statusNotifier,
+                builder: (_, value, __) {
+                  if (value.error.isNotEmpty) {
+                    return Container(
+                      color: AppColors.delete,
+                      width: size.width * 0.9,
+                      height: size.height * 0.2,
+                      child: Text("Ocorreu um erro: ${value.error}"),
+                    );
+                  }
+                  return Container();
+                }),
           ],
         ),
       ),

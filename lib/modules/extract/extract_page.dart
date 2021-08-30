@@ -12,7 +12,7 @@ class ExtractPage extends StatefulWidget {
 }
 
 class _ExtractPageState extends State<ExtractPage> {
-  final controller = BoletoListController();
+  final BoletoListController controller = BoletoListController();
 
   @override
   Widget build(BuildContext context) {

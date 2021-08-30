@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:payflow/shared/models/boleto_model.dart';
 import 'package:payflow/shared/widgets/boleto_list/boleto_list_controller.dart';
+import 'package:payflow/shared/widgets/boleto_list/boleto_list_status.dart';
 import 'package:payflow/shared/widgets/boleto_tile/boleto_tile_widget.dart';
 
 class BoletoListWidget extends StatefulWidget {
@@ -15,12 +15,15 @@ class BoletoListWidget extends StatefulWidget {
 class _BoletoListWidgetState extends State<BoletoListWidget> {
   @override
   Widget build(BuildContext context) {
-    return ValueListenableBuilder<List<BoletoModel>>(
+    return ValueListenableBuilder<BoletoListStatus>(
       valueListenable: widget.controller.boletosNotifier,
-      builder: (_, boletos, __) {
+      builder: (_, value, __) {
         return Column(
-          children:
-              boletos.map((boleto) => BoletoTileWidget(data: boleto)).toList(),
+          children: value.success
+              ? value.boletos
+                  .map((boleto) => BoletoTileWidget(data: boleto))
+                  .toList()
+              : [Container()],
         );
       },
     );

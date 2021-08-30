@@ -1,10 +1,10 @@
 import 'package:animated_card/animated_card.dart';
 import 'package:flutter/material.dart';
-import 'package:payflow/shared/models/boleto_model.dart';
 import 'package:payflow/shared/themes/app_colors.dart';
 import 'package:payflow/shared/themes/app_text_styles.dart';
 import 'package:payflow/shared/widgets/boleto_info/boleto_info_widget.dart';
 import 'package:payflow/shared/widgets/boleto_list/boleto_list_controller.dart';
+import 'package:payflow/shared/widgets/boleto_list/boleto_list_status.dart';
 import 'package:payflow/shared/widgets/boleto_list/boleto_list_widget.dart';
 
 class MeusBoletosPage extends StatefulWidget {
@@ -15,7 +15,7 @@ class MeusBoletosPage extends StatefulWidget {
 }
 
 class _MeusBoletosPageState extends State<MeusBoletosPage> {
-  final controller = BoletoListController();
+  final BoletoListController controller = BoletoListController();
 
   @override
   Widget build(BuildContext context) {
@@ -30,11 +30,16 @@ class _MeusBoletosPageState extends State<MeusBoletosPage> {
               ),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 24),
-                child: ValueListenableBuilder<List<BoletoModel>>(
+                child: ValueListenableBuilder<BoletoListStatus>(
                   valueListenable: controller.boletosNotifier,
-                  builder: (_, boletos, __) => AnimatedCard(
-                      direction: AnimatedCardDirection.top,
-                      child: BoletoInfoWidget(size: boletos.length)),
+                  builder: (_, status, __) {
+                    if (status.success) {
+                      return AnimatedCard(
+                          direction: AnimatedCardDirection.top,
+                          child: BoletoInfoWidget(size: status.boletos.length));
+                    }
+                    return Container();
+                  },
                 ),
               ),
             ],
