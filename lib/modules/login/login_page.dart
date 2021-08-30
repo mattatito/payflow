@@ -75,6 +75,7 @@ class _LoginPageState extends State<LoginPage> {
                       builder: (_, value, __) {
                         if (!value.loading) {
                           return SocialLoginButton(
+                            key: Key('google_signin_button'),
                             onTap: () {
                               controller.googleSignIn(context);
                             },

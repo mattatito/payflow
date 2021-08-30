@@ -35,15 +35,18 @@ void main() {
     final onChanged = (value) {};
     final validator =
         (String? value) => value?.isEmpty ?? true ? mensagemDeErro : null;
-    final key = GlobalKey<FormFieldState>();
+    final key = GlobalKey<FormState>();
+    final errorMessageFinder = find.text(mensagemDeErro);
+    final labelFinder = find.text(label);
+    final testedWidget =
+        _inputTextWidget(key, label, icon, onChanged, controller, validator);
 
-    await tester.pumpWidget(
-        _inputTextWidget(key, label, icon, onChanged, controller, validator));
-
-    await tester.pump(Duration(seconds: 1));
+    await tester.pumpWidget(testedWidget);
     key.currentState?.validate();
+    await tester.pumpAndSettle();
 
-    expect(find.text(mensagemDeErro), findsOneWidget);
+    expect(labelFinder, findsOneWidget);
+    expect(errorMessageFinder, findsOneWidget);
   });
 }
 
@@ -58,13 +61,15 @@ Widget _inputTextWidget(
       data: MediaQueryData(),
       child: MaterialApp(
         home: Material(
-          child: InputTextWidget(
+          child: Form(
             key: key,
-            label: label,
-            icon: icon,
-            onChanged: onChanged,
-            controller: controller,
-            validator: validator,
+            child: InputTextWidget(
+              label: label,
+              icon: icon,
+              onChanged: onChanged,
+              controller: controller,
+              validator: validator,
+            ),
           ),
         ),
       ),
